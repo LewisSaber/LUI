@@ -229,6 +229,12 @@ export function getImg(img, extension = "png") {
 
 export function functionMerger(...funcs) {
   let list = funcs
+  for (let i = 0; i < list.length; i++) {
+    if (!(list[i] instanceof Function)) {
+      let ret_value = list[i]
+      list[i] = () => ret_value
+    }
+  }
   let merger = (...args) => {
     let obj = {}
     for (const func of list) {

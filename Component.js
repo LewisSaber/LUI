@@ -3,6 +3,7 @@ import { Line, Vector, Vector4d } from "./Math.js"
 import {
   copyObject,
   DoubleLinkedList,
+  functionMerger,
   getUniqueIdentificator,
   HTMLElementHelper,
   mergeObject,
@@ -230,7 +231,10 @@ export default class Component extends EventHandler {
    * @returns {Vector}
    */
   getPixelSize() {
-    return this.pixelSize || this.parent.getPixelSize()
+    return (
+      this.pixelSize ||
+      (this.hasParent() ? this.parent.getPixelSize() : new Vector())
+    )
   }
 
   /**
@@ -330,7 +334,7 @@ export default class Component extends EventHandler {
    * @returns {Number|String}
    */
   getFontSize() {
-    return this.fontSize || this.parent.getFontSize()
+    return this.fontSize || (this.hasParent() ? this.parent.getFontSize() : 0)
   }
 
   // **** ADDERS *****
@@ -393,7 +397,7 @@ export default class Component extends EventHandler {
   detachFromParent() {
     this.parent.removeComponent(this)
     this.applyParentRelation("remove")
-    this.parent = undefined
+    this.setParent(undefined)
   }
 
   /**
@@ -522,7 +526,7 @@ export default class Component extends EventHandler {
     let oldparent = this.parent
     if (oldparent) this.detachFromParent()
     this.parent = parent
-    this.applyParentRelation()
+    if (parent) this.applyParentRelation()
     this.dispatchEvent("parentChange", { from: oldparent, to: parent })
     return this
   }
@@ -682,8 +686,8 @@ export default class Component extends EventHandler {
    * @param {Function} decoration
    * @returns
    */
-  setDecoration(decoration) {
-    this.decorations["main"] = decoration
+  setDecoration(...decorations) {
+    this.decorations["main"] = Component.parseDecorations(decorations)
     if (this.isBuilt) this.applyDecoration()
     return this
   }
@@ -702,8 +706,8 @@ export default class Component extends EventHandler {
    * @param {Function} decoration
    * @returns
    */
-  setHoverDecoration(decoration) {
-    this.decorations["hover"] = decoration
+  setHoverDecoration(...decorations) {
+    this.decorations["hover"] = Component.parseDecorations(decorations)
     if (this.isBuilt) this.applyDecoration()
     return this
   }
@@ -722,8 +726,8 @@ export default class Component extends EventHandler {
    * @param {Function} decoration
    * @returns
    */
-  setActiveDecoration(decoration) {
-    this.decorations["active"] = decoration
+  setActiveDecoration(...decorations) {
+    this.decorations["active"] = Component.parseDecorations(decorations)
     if (this.isBuilt) this.applyDecoration()
     return this
   }
@@ -875,14 +879,20 @@ export default class Component extends EventHandler {
     let size = this.getSize().multiply(pixelSize)
     let position = this.getPosition().multiply(pixelSize)
     let mainDecoration = this.decorations.get("main", () => ({}))
-    let decoration = mainDecoration(size, position)
+    let decoration = mainDecoration(size, position, pixelSize)
     if (this.isActive) {
       let activeDecoration = this.decorations.get("active", () => ({}))
-      decoration = mergeObject(decoration, activeDecoration(size, position))
+      decoration = mergeObject(
+        decoration,
+        activeDecoration(size, position, pixelSize)
+      )
     }
     if (this.isHovered) {
       let hoverDecoration = this.decorations.get("hover", () => ({}))
-      decoration = mergeObject(decoration, hoverDecoration(size, position))
+      decoration = mergeObject(
+        decoration,
+        hoverDecoration(size, position, pixelSize)
+      )
     }
 
     for (const key in decoration) {
@@ -969,6 +979,7 @@ export default class Component extends EventHandler {
 
   /** Dispatches **mousedown** event */
   onmousedown(evt) {
+    evt.targetComponent = this
     if (evt.button == 0) {
       if (this.isDraggable) {
         evt.preventDefault()
@@ -978,7 +989,6 @@ export default class Component extends EventHandler {
       }
       if (evt) evt.stopPropagation()
       this.dispatchEvent("mousedown", evt)
-
       window.MainComponent.dispatchEvent("mousedown", evt)
     }
   }
@@ -1089,6 +1099,14 @@ export default class Component extends EventHandler {
     if (this.isOpen) [this.close()]
     else this.open()
     return this
+  }
+
+  static parseDecorations(decorations) {
+    if (decorations.length == 1) {
+      if (decorations[0] instanceof Function) return decorations[0]
+      return () => decorations[0]
+    }
+    return functionMerger(...decorations)
   }
 
   /**
@@ -1393,7 +1411,7 @@ export default class Component extends EventHandler {
     this.createAndConfigureContainer()
     this.addListeners()
     this.applyZLayer()
-    this.applyResize()
+    //this.applyResize()
     this.applyAttributes()
 
     this.isBuilt = true
