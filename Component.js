@@ -305,7 +305,7 @@ export default class Component extends EventHandler {
    * @deprecated
    */
   getWindowSize() {
-    return new Vector(window.innerWidth, window.innerHeight - 0.24)
+    return new Vector(window.innerWidth, window.innerHeight - 0.4)
   }
 
   /**
