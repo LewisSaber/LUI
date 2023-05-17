@@ -2,6 +2,9 @@ import Component from "./Component.js"
 import Input from "./Input.js"
 
 export default class Form extends Component {
+  static events = {
+    emptyRequirement: "emptyRequirement",
+  }
   constructor(inputs = []) {
     super()
     this.inputs = {}
@@ -21,7 +24,7 @@ export default class Form extends Component {
       let component = copy.getComponentByName(key)
       if (component instanceof Input) {
         component.removeEventListener(
-          "namechange",
+          Component.events.nameChange,
           component.options.informational.form_input_namechange_listener_id
         )
         copy.addInput(
@@ -58,7 +61,7 @@ export default class Form extends Component {
       inputComponent.options.informational.isRequired = isRequired
       inputComponent.options.informational.form_input_namechange_listener_id =
         inputComponent.addEventListener(
-          "namechange",
+          Component.events.nameChange,
           (evt) => {
             delete this.inputs[evt.from]
             this.inputs[evt.to] = inputComponent
@@ -78,7 +81,7 @@ export default class Form extends Component {
       input.form = this
       input.options.informational.form_input_namechange_listener_id =
         input.addEventListener(
-          "namechange",
+          Component.events.nameChange,
           (evt) => {
             delete this.inputs[evt.from]
             this.inputs[evt.to] = input
@@ -106,12 +109,12 @@ export default class Form extends Component {
         this.inputs[input].options.informational.isRequired &&
         !skipRequirements
       ) {
-        this.inputs[input].dispatchEvent("EmptyRequirement")
+        this.inputs[input].dispatchEvent(Form.events.emptyRequirement)
         failedList.push(this.inputs[input])
       }
     }
     if (failedList.length > 0) {
-      this.dispatchEvent("EmptyRequirement", { list: failedList })
+      this.dispatchEvent(Form.events.emptyRequirement, { list: failedList })
       return false
     }
     return data
@@ -140,7 +143,7 @@ export default class Form extends Component {
       this.inputs.get(component.getName()).getId() == component.getId()
     ) {
       component.removeEventListener(
-        "namechange",
+        Component.events.nameChange,
         component.options.informational.form_input_namechange_listener_id
       )
 

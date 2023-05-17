@@ -1,6 +1,12 @@
 import Component from "./Component.js"
 
 export default class Input extends Component {
+  static events = {
+    placeholderChange: "placeholderChange",
+    change: "change",
+    blur: "blur",
+    input: "input",
+  }
   constructor() {
     super()
     this.type = "text"
@@ -13,11 +19,11 @@ export default class Input extends Component {
 
   setPlaceHolder(text) {
     if (this.isBuilt) {
-      this.dispatchEvent("placeholderChange", { text })
+      this.dispatchEvent(Input.events.placeholderChange, { text })
       this.container.placeholder = text
     } else
       this.addEventListener(
-        "build",
+        Component.events.build,
         (_, target) => {
           target.setPlaceHolder(text)
         },
@@ -35,13 +41,13 @@ export default class Input extends Component {
     return this
   }
   onchange(evt) {
-    this.dispatchEvent("change", evt)
+    this.dispatchEvent(Input.events.change, evt)
   }
   onblur(evt) {
-    this.dispatchEvent("blur", evt)
+    this.dispatchEvent(Input.events.blur, evt)
   }
   oninput(evt) {
-    this.dispatchEvent("input", evt)
+    this.dispatchEvent(Input.events.input, evt)
   }
   focus() {
     this.container.focus()
@@ -77,10 +83,10 @@ export default class Input extends Component {
   setValue(value, triggerInput = true) {
     if (this.isBuilt) {
       this.container.value = value
-      if (triggerInput) this.dispatchEvent("input")
+      if (triggerInput) this.dispatchEvent(Input.events.input)
     } else {
       this.addEventListener(
-        "build",
+        Component.events.build,
         () => this.setValue(value, triggerInput),
         undefined,
         { once: true }

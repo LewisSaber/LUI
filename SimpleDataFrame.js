@@ -7,6 +7,10 @@ import { Vector } from "./Math.js"
 import EventHandler from "./EventHandler.js"
 
 export default class SimpleDataFrame extends EventHandler {
+  static events = {
+    refresh: "refresh",
+    valueChange: "valueChange",
+  }
   constructor(rowNames) {
     super()
     this.df = []
@@ -152,12 +156,15 @@ export default class SimpleDataFrame extends EventHandler {
         if (this.tableComponents[i][j] == undefined) {
           if (i == 0) {
             this.tableComponents[i][j] = new Button().attachToParent(this.table)
-            this.tableComponents[i][j].addEventListener("mousedown", () => {
-              if (this.options.allowSorting) {
-                this.sortByRow(this.df[i][j].toString())
-                this.refreshTable()
+            this.tableComponents[i][j].addEventListener(
+              Component.events.mousedown,
+              () => {
+                if (this.options.allowSorting) {
+                  this.sortByRow(this.df[i][j].toString())
+                  this.refreshTable()
+                }
               }
-            })
+            )
           } else {
             this.tableComponents[i][j] = new Label()
               .attachToParent(this.table)
@@ -217,7 +224,7 @@ export default class SimpleDataFrame extends EventHandler {
       if (!this.options.isVertical)
         accumulatedWidth += (rowWidths[i] + 1) * this.fontSize * 0.5
     }
-    this.dispatchEvent("refresh")
+    this.dispatchEvent(SimpleDataFrame.events.refresh)
     return this
   }
   setFontSize(size) {
@@ -250,7 +257,7 @@ export default class SimpleDataFrame extends EventHandler {
           break
       }
     }
-    this.dispatchEvent("valueChange", {
+    this.dispatchEvent(Component.events.valueChange, {
       newValue: value,
       at: new Vector(row, column),
     })

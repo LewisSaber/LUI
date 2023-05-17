@@ -1,4 +1,2 @@
-- Make PIxelsize static
 - Ability to get decoration from Component
 - Make input copy carry its value
-- Add event Names As Static Value

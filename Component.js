@@ -12,6 +12,20 @@ import {
 export default class Component extends EventHandler {
   static DEFAULT_COMPONENT_NAME = "Component_name_default"
   static pixelSize = 0
+  static events = {
+    parentChange: "parentChange",
+    nameChange: "nameChange",
+    animationend: "animationend",
+    contextmenu: "contextmenu",
+    mouseup: "mouseup",
+    mousedown: "mousedown",
+    mouseleave: "mouseleave",
+    mouseenter: "mouseenter",
+    copy: "copy",
+    close: "close",
+    open: "open",
+    build: "build",
+  }
   constructor() {
     super()
     this.name = Component.DEFAULT_COMPONENT_NAME
@@ -339,7 +353,7 @@ export default class Component extends EventHandler {
     if (this.isBuilt) this.container.classList.add(CSSclasses)
     else
       this.addEventListener(
-        "build",
+        Component.events.build,
         (_, target) => {
           target.addCSSClass(...CSSclasses)
         },
@@ -353,7 +367,7 @@ export default class Component extends EventHandler {
     if (this.isBuilt) this.container.classList.remove(CSSclasses)
     else
       this.addEventListener(
-        "build",
+        Component.events.build,
         () => {
           this.removeCSSClass(...CSSclasses)
         },
@@ -479,7 +493,7 @@ export default class Component extends EventHandler {
       this.applyParentRelation()
     } else {
       this.addEventListener(
-        "parentChange",
+        Component.events.parentChange,
         () => this.setParentRelation(relationName),
         undefined,
         { once: true }
@@ -510,7 +524,10 @@ export default class Component extends EventHandler {
     if (oldparent) this.detachFromParent()
     this.parent = parent
     if (parent) this.applyParentRelation()
-    this.dispatchEvent("parentChange", { from: oldparent, to: parent })
+    this.dispatchEvent(Component.events.parentChange, {
+      from: oldparent,
+      to: parent,
+    })
     return this
   }
 
@@ -606,7 +623,7 @@ export default class Component extends EventHandler {
   setContextMenu(menu) {
     if (this.contextMenu) {
       window.MainComponent.removeEventListener(
-        "mousedown",
+        Component.events.mousedown,
         this.contextMenu.closingId
       )
       window.MainComponent.removeComponent(this.contextMenu)
@@ -615,7 +632,7 @@ export default class Component extends EventHandler {
     this.contextMenu = menu
     menu.setZLayer(Component.ZLAYERS.CONTEXT_MENU)
     this.contextMenu.closingId = window.MainComponent.addEventListener(
-      "mousedown",
+      Component.events.mousedown,
       (_, target) => {
         target.contextMenu.close()
       }
@@ -769,7 +786,7 @@ export default class Component extends EventHandler {
   setName(name) {
     let oldName = this.name
     this.name = name
-    this.dispatchEvent("namechange", { from: oldName, to: name })
+    this.dispatchEvent(Component.events.nameChange, { from: oldName, to: name })
     return this
   }
 
@@ -934,7 +951,7 @@ export default class Component extends EventHandler {
       this.oncontextmenu(evt)
     )
     this.container.addEventListener("animationend", (evt) => {
-      this.dispatchEvent("animationend", evt)
+      this.dispatchEvent(Component.events.animationend, evt)
     })
   }
 
@@ -942,7 +959,7 @@ export default class Component extends EventHandler {
 
   /** Dispatches **contextmenu** event */
   oncontextmenu(evt) {
-    this.dispatchEvent("contextmenu", evt)
+    this.dispatchEvent(Component.events.contextmenu, evt)
     if (this.contextMenu) {
       evt.stopPropagation()
       let clickPosition = new Vector(evt.clientX, evt.clientY)
@@ -964,7 +981,7 @@ export default class Component extends EventHandler {
       delete this.mousePos
     }
     if (evt) evt.stopPropagation()
-    this.dispatchEvent("mouseup", evt)
+    this.dispatchEvent(Component.events.mouseup, evt)
   }
 
   /** Dispatches **mousedown** event */
@@ -978,8 +995,8 @@ export default class Component extends EventHandler {
         document.body.addEventListener("mousemove", this.drag_func_listener)
       }
       if (evt) evt.stopPropagation()
-      this.dispatchEvent("mousedown", evt)
-      window.MainComponent.dispatchEvent("mousedown", evt)
+      this.dispatchEvent(Component.events.mousedown, evt)
+      window.MainComponent.dispatchEvent(Component.events.mousedown, evt)
     }
   }
 
@@ -990,14 +1007,14 @@ export default class Component extends EventHandler {
     }
     this.isHovered = false
     this.applyDecoration()
-    this.dispatchEvent("mouseleave", evt)
+    this.dispatchEvent(Component.events.mouseleave, evt)
   }
   /** Dispatches **mouseenter** function */
   onmouseenter(evt) {
     this.isHovered = true
     this.applyDecoration()
 
-    this.dispatchEvent("mouseenter", evt)
+    this.dispatchEvent(Component.events.mouseenter, evt)
   }
 
   // **** Miscellaneous ****
@@ -1079,7 +1096,7 @@ export default class Component extends EventHandler {
             break
         }
     }
-    copy.dispatchEvent("copy")
+    copy.dispatchEvent(Component.events.copy)
     return copy
   }
   /**
@@ -1216,14 +1233,14 @@ export default class Component extends EventHandler {
     return this
   }
 
-  close() {
+  close(evt = {}) {
     this.hide()
     this.isOpen = false
     this.isVisible = false
     if (this.getFloat() != "none") {
       this.recalculateFloat()
     }
-    this.dispatchEvent("close")
+    this.dispatchEvent(Component.events.close, evt)
     return this
   }
 
@@ -1235,7 +1252,7 @@ export default class Component extends EventHandler {
     }
 
     this.container.style.display = "block"
-    this.dispatchEvent("open", evt)
+    this.dispatchEvent(Component.events.open, evt)
   }
 
   /**
@@ -1414,7 +1431,7 @@ export default class Component extends EventHandler {
       )
     }
     delete this.queue
-    this.dispatchEvent("build")
+    this.dispatchEvent(Component.events.build)
     return this
   }
 

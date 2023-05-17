@@ -35,7 +35,7 @@ export class TextField extends Component {
     let loadFileInput = new Input()
       .setType("file")
       .addAttributes({ accept: ".txt" })
-    loadFileInput.addEventListener("change", () => {
+    loadFileInput.addEventListener(Input.events.change, () => {
       let reader = new FileReader()
       reader.onload = (event) => {
         this.loadText(event.target.result)

@@ -11,7 +11,7 @@ export default class Button extends Component {
     if (!this.textLabel) {
       this.textLabel = new Label().setSizeEqualToParent()
       this.textLabel.options.informational.is_button_text_label = true
-      this.textLabel.addEventListener("build", (_, target) => {
+      this.textLabel.addEventListener(Component.events.build, (_, target) => {
         target.getContainer().style.pointerEvents = "none"
       })
       this.addComponent(this.textLabel)
