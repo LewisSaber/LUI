@@ -1,10 +1,6 @@
 import EventHandler from "./EventHandler.js"
 import { Line, Vector, Vector4d } from "./Math.js"
-import {
-  DoubleLinkedList,
-  functionMerger,
-  getUniqueIdentificator,
-} from "./Utility.js"
+import { DoubleLinkedList, functionMerger } from "./Utility.js"
 
 import HTMLElementHelper from "./Helpers/HTMLElementHelper.js"
 import ObjectHelper from "./Helpers/ObjectHelper.js"
@@ -12,6 +8,7 @@ import ObjectHelper from "./Helpers/ObjectHelper.js"
 export default class Component extends EventHandler {
   static DEFAULT_COMPONENT_NAME = "Component_name_default"
   static pixelSize = 0
+  static ids = 0
   static events = {
     parentChange: "parentChange",
     nameChange: "nameChange",
@@ -536,7 +533,11 @@ export default class Component extends EventHandler {
    * @returns {Component}
    */
   #setId() {
-    if (this.id == undefined) this.id = getUniqueIdentificator()
+    if (this.id == undefined) {
+      this.id = Component.ids
+      Component.ids++
+    }
+
     return this
   }
 
