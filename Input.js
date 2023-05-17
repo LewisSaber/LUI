@@ -86,5 +86,6 @@ export default class Input extends Component {
         { once: true }
       )
     }
+    return this
   }
 }

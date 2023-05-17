@@ -328,7 +328,7 @@ export class DoubleLinkedList {
 
     if (node == this.tail) {
       this.tail = value
-    } else node.next.prev = value
+    } else if (node.next) node.next.prev = value
 
     node.next = value
 

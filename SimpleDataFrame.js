@@ -23,12 +23,17 @@ export default class SimpleDataFrame extends EventHandler {
       row: "fuck u",
       ascending: false,
     }
+    this.cellDecoration = {}
   }
   copy() {
     console.error("Cant copy dataframe yet")
   }
   loadOptions(options = {}) {
     this.options = mergeObject(this.options, options)
+  }
+  setCellDecoration(decoration) {
+    this.cellDecoration = decoration
+    if (this.table) this.refreshTable()
   }
 
   isEmpty() {
@@ -54,7 +59,6 @@ export default class SimpleDataFrame extends EventHandler {
   }
   createTable() {
     this.table = new Component()
-    this.table.setDecoration(Styles.Table.main)
     this.table._defaultSetSize = this.table.setSize
 
     this.table.setSize = (x, y) => {
@@ -69,12 +73,12 @@ export default class SimpleDataFrame extends EventHandler {
     // this.table.setContextMenu(this.createContextMenu())
   }
 
-  createContextMenu() {
-    let contextMenu = new Component()
-      .setSize(2, 3)
-      .setDecoration(Styles.Button.menu)
-    return contextMenu
-  }
+  // createContextMenu() {
+  //   let contextMenu = new Component()
+  //     .setSize(2, 3)
+  //     .setDecoration(Styles.Button.menu)
+  //   return contextMenu
+  // }
   getWidth() {
     return this.isEmpty() ? 0 : this.df[0].length
   }
@@ -155,7 +159,9 @@ export default class SimpleDataFrame extends EventHandler {
               }
             })
           } else {
-            this.tableComponents[i][j] = new Label().attachToParent(this.table)
+            this.tableComponents[i][j] = new Label()
+              .attachToParent(this.table)
+              .setPointerEvents(true)
 
             this.tableComponents[i][j].addEventListener("mousedown", () => {
               if (this.options.allowEditing) {
@@ -182,7 +188,7 @@ export default class SimpleDataFrame extends EventHandler {
         }
         this.refreshCell(i, j)
         this.tableComponents[i][j]
-          .setDecoration(Styles.TableCell.main)
+          .setDecoration(this.cellDecoration)
           .setColor?.("white")
         if (this.options.isVertical) {
           this.tableComponents[i][j]
@@ -217,12 +223,14 @@ export default class SimpleDataFrame extends EventHandler {
   setFontSize(size) {
     this.fontSize = size
     if (this.table) this.refreshTable()
+    return this
   }
   addColumn(name, data) {
     for (let i = 0; i <= data.length; i++) {
       if (this.df[i] == undefined) this.df[i] = []
       this.df[i].push(i == 0 ? name : data[i - 1])
     }
+    return this
   }
   /**
      Refresh layers:

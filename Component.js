@@ -1067,13 +1067,14 @@ export default class Component extends EventHandler {
             copy.setParentRelation(this.parentRelation)
             break
           case "queue":
-            for (const component of this.queue) {
-              copy.addComponent(
-                component.component.copy(toCopy),
-                component.channel,
-                component.component.options.informational.should_try_open
-              )
-            }
+            if (this.queue)
+              for (const component of this.queue) {
+                copy.addComponent(
+                  component.component.copy(toCopy),
+                  component.channel,
+                  component.component.options.informational.should_try_open
+                )
+              }
 
             break
           default:
@@ -1182,11 +1183,12 @@ export default class Component extends EventHandler {
       ) {
         continue
       }
+
       this.components[component.getChannel()][component_in].close()
     }
-    if (component.getChannel() == "none") {
-      if (component.getFloat() != "none") this.recalculateFloat()
-    }
+    // if (component.getChannel() == "none") {
+    if (component.getFloat() != "none") this.recalculateFloat()
+
     return this
   }
 
@@ -1243,6 +1245,7 @@ export default class Component extends EventHandler {
     if (this.parent && this.parent.isOpen) {
       if (this.getChannel() != "none") this.parent.handleComponentOpen(this)
     }
+
     this.container.style.display = "block"
     this.dispatchEvent("open", evt)
   }
