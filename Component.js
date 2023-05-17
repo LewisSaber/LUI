@@ -11,7 +11,7 @@ import {
 
 export default class Component extends EventHandler {
   static DEFAULT_COMPONENT_NAME = "Component_name_default"
-
+  static pixelSize = 0
   constructor() {
     super()
     this.name = Component.DEFAULT_COMPONENT_NAME
@@ -78,6 +78,8 @@ export default class Component extends EventHandler {
   getCSSClassList() {
     if (this.isBuilt) return this.container.classList
   }
+
+  static getPixelSize = () => Component.pixelSize
 
   getParentByName(name) {
     if (this.hasParent()) {
@@ -226,18 +228,6 @@ export default class Component extends EventHandler {
   }
 
   /**
-   * Recursive function to get PixelSize, used by to convert grid coordinates to Pixels
-   *
-   * @returns {Vector}
-   */
-  getPixelSize() {
-    return (
-      this.pixelSize ||
-      (this.hasParent() ? this.parent.getPixelSize() : new Vector())
-    )
-  }
-
-  /**
    * Get position of component
    * @returns {Vector}
    */
@@ -299,13 +289,6 @@ export default class Component extends EventHandler {
    */
   getContainer() {
     return this.container
-  }
-  /**
-   *
-   * @deprecated
-   */
-  getWindowSize() {
-    return new Vector(window.innerWidth, window.innerHeight - 0.4)
   }
 
   /**
@@ -713,7 +696,7 @@ export default class Component extends EventHandler {
   }
 
   /**
-   * Set decoration function on hover,
+   * Set decoration function on activation,
    *
    * Decoration functions must return object of key-value pairs where
    *
@@ -721,7 +704,7 @@ export default class Component extends EventHandler {
    *
    * Value - value of it
    *
-   * Decoration functio call passes size(in px) and position(in px) as arguments
+   * Decoration function call passes size(in px) and position(in px) as arguments
    *
    * @param {Function} decoration
    * @returns
@@ -739,8 +722,9 @@ export default class Component extends EventHandler {
         this.parent.activeComponents[this.getChannel()] = this
       } else {
         if (
+          this.hasParent() &&
           this.parent.getActiveComponent(this.getChannel()).getId?.() ==
-          this.getId()
+            this.getId()
         ) {
           delete this.parent.activeComponents[this.getChannel()]
         }
@@ -796,7 +780,7 @@ export default class Component extends EventHandler {
    */
   setFontSize(fontSize) {
     this.fontSize = fontSize
-    if (this.isBuilt) this.applyFontSize(this.getPixelSize())
+    if (this.isBuilt) this.applyFontSize()
     return this
   }
 
@@ -867,17 +851,24 @@ export default class Component extends EventHandler {
       : "none"
   }
 
-  applyPosition(pixelSize = this.getPixelSize()) {
+  applyPosition() {
     HTMLElementHelper.setPosition(
       this.container,
-      this.getPosition().multiply(pixelSize)
+      this.getPosition().scale(Component.getPixelSize())
+    )
+  }
+
+  applySize(size) {
+    HTMLElementHelper.setSize(
+      this.container,
+      size.scale(Component.getPixelSize())
     )
   }
 
   applyDecoration() {
-    let pixelSize = this.getPixelSize()
-    let size = this.getSize().multiply(pixelSize)
-    let position = this.getPosition().multiply(pixelSize)
+    let pixelSize = Component.getPixelSize()
+    let size = this.getSize().scale(pixelSize)
+    let position = this.getPosition().scale(pixelSize)
     let mainDecoration = this.decorations.get("main", () => ({}))
     let decoration = mainDecoration(size, position, pixelSize)
     if (this.isActive) {
@@ -906,7 +897,7 @@ export default class Component extends EventHandler {
    * @param {Vector} pixelSize
    * @param {Vector} size
    */
-  applyFontSize(pixelSize, size) {
+  applyFontSize(size) {
     let fontSize = this.getFontSize()
 
     if (isNaN(fontSize) && fontSize.endsWith("%")) {
@@ -917,8 +908,7 @@ export default class Component extends EventHandler {
 
       fontSize = (size.min() * fontSize.slice(0, -1)) / 100
     }
-    this.container.style.fontSize =
-      fontSize * Math.min(pixelSize.x, pixelSize.y) + "px"
+    this.container.style.fontSize = fontSize * Component.getPixelSize() + "px"
   }
 
   applyAttributes() {
@@ -957,7 +947,7 @@ export default class Component extends EventHandler {
       evt.stopPropagation()
       let clickPosition = new Vector(evt.clientX, evt.clientY)
       this.contextMenu.setPosition(
-        clickPosition.div_vec(window.MainComponent.getPixelSize())
+        clickPosition.scale(1 / Component.getPixelSize())
       )
       //clickPosition.div_vec(this.getPixelSize()).sub_vec(this.getAbsolutePosition()))
 
@@ -1198,10 +1188,8 @@ export default class Component extends EventHandler {
   resize(sizeOfParent) {
     if (sizeOfParent == undefined) {
     }
-    let pixelSize = this.getPixelSize()
     let size = this.getSize(sizeOfParent)
-    HTMLElementHelper.setSize(this.container, size.multiply(pixelSize))
-
+    this.applySize(size, sizeOfParent)
     this.applyPosition()
 
     for (let channel in this.components) {
@@ -1210,7 +1198,7 @@ export default class Component extends EventHandler {
       }
     }
     this.applyDecoration()
-    this.applyFontSize(pixelSize, sizeOfParent)
+    this.applyFontSize(sizeOfParent)
     this.recalculateFloat()
     if (this.parent && this.getFloat() != "none") this.parent.recalculateFloat()
   }
@@ -1303,7 +1291,7 @@ export default class Component extends EventHandler {
   drag(evt) {
     let newMousePos = new Vector(evt.clientX, evt.clientY)
     let newPos = this.position.add_vec(
-      newMousePos.sub_vec(this.mousePos).div_vec(this.getPixelSize())
+      newMousePos.sub_vec(this.mousePos).scale(1 / Component.getPixelSize())
     )
     this.setPosition(newPos.x, newPos.y)
     this.mousePos = newMousePos

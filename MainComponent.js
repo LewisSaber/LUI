@@ -21,6 +21,8 @@ export default class MainComponent extends Component {
     this.open()
   }
 
+  applySize() {}
+
   copy() {
     return undefined
   }
@@ -30,7 +32,7 @@ export default class MainComponent extends Component {
    */
   computeSize() {
     let windowSize = this.getWindowSize()
-    this.pixelSize = new Vector()
+    Component.pixelSize = 0
 
     if (this.isHeightBased == undefined)
       if (this.size.y != 0) {
@@ -38,19 +40,22 @@ export default class MainComponent extends Component {
       } else this.isHeightBased = false
 
     if (this.isHeightBased) {
-      this.pixelSize.y = windowSize.y / this.size.y
-      this.pixelSize.x = this.pixelSize.y
-      this.size.x = this.size.x = windowSize.x / this.pixelSize.x
+      Component.pixelSize = windowSize.y / this.size.y
+      this.size.x = windowSize.x / Component.getPixelSize()
     } else {
-      this.pixelSize.x = windowSize.x / this.size.x
-      this.pixelSize.y = this.pixelSize.x
-      this.size.y = this.size.y = windowSize.y / this.pixelSize.y
+      Component.pixelSize = windowSize.x / this.size.x
+
+      this.size.y = windowSize.y / Component.getPixelSize()
     }
 
     return this
   }
   getAbsolutePosition() {
     return new Vector()
+  }
+
+  getWindowSize() {
+    return new Vector(window.innerWidth, window.innerHeight - 1)
   }
 
   setWidth(width) {
