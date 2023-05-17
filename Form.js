@@ -1,4 +1,5 @@
 import Component from "./Component.js"
+import ObjectHelper from "./Helpers/ObjectHelper.js"
 import Input from "./Input.js"
 
 export default class Form extends Component {
@@ -121,7 +122,7 @@ export default class Form extends Component {
   }
 
   getInput(name) {
-    return this.inputs.get(name)
+    return ObjectHelper.get(this.inputs, name, undefined)
   }
 
   fill(data, empty_missing = true) {
@@ -139,8 +140,9 @@ export default class Form extends Component {
 
   removeInput(component) {
     if (
-      this.inputs.get(component.getName()) &&
-      this.inputs.get(component.getName()).getId() == component.getId()
+      ObjectHelper.get(this.inputs, component.getName()) &&
+      ObjectHelper.get(this.inputs, component.getName()).getId() ==
+        component.getId()
     ) {
       component.removeEventListener(
         Component.events.nameChange,

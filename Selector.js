@@ -1,4 +1,5 @@
 import Component from "./Component.js"
+import ObjectHelper from "./Helpers/ObjectHelper.js"
 
 export default class Selector extends Component {
   constructor() {
@@ -6,7 +7,7 @@ export default class Selector extends Component {
     this.options = []
   }
 
-  static copyConfig = mergeObject(Component.copyConfig, {
+  static copyConfig = ObjectHelper.merge(Component.copyConfig, {
     includeProperties: {
       options: true,
     },

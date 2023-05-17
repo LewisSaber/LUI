@@ -2,9 +2,10 @@ import Button from "./Button.js"
 import Input from "./Input.js"
 import Component from "./Component.js"
 import Label from "./Label.js"
-import { mergeObject } from "./Utility.js"
 import { Vector } from "./Math.js"
 import EventHandler from "./EventHandler.js"
+import ObjectHelper from "./Helpers/ObjectHelper.js"
+import ArrayHelper from "./Helpers/ArrayHelper.js"
 
 export default class SimpleDataFrame extends EventHandler {
   static events = {
@@ -33,7 +34,7 @@ export default class SimpleDataFrame extends EventHandler {
     console.error("Cant copy dataframe yet")
   }
   loadOptions(options = {}) {
-    this.options = mergeObject(this.options, options)
+    this.options = ObjectHelper.merge(this.options, options)
   }
   setCellDecoration(decoration) {
     this.cellDecoration = decoration
@@ -55,7 +56,7 @@ export default class SimpleDataFrame extends EventHandler {
     if (!Array.isArray(dict) && dict instanceof Object) {
       let arr = []
       for (const row of this.df[0]) {
-        arr.push(dict.get(row, undefined))
+        arr.push(ObjectHelper.get(dict, row, undefined))
       }
       this.df.push(arr)
       return true
@@ -128,7 +129,8 @@ export default class SimpleDataFrame extends EventHandler {
     // this.maxsize = this.table.size
 
     let rowWidths = this.getCellBuildingInfo()
-    let tableLength = (rowWidths.sum + rowWidths.length) * this.fontSize * 0.5
+    let tableLength =
+      (ArrayHelper.sum(rowWidths) + rowWidths.length) * this.fontSize * 0.5
 
     let tableHeight =
       this.fontSize *

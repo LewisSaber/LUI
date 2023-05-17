@@ -1,13 +1,13 @@
 import EventHandler from "./EventHandler.js"
 import { Line, Vector, Vector4d } from "./Math.js"
 import {
-  copyObject,
   DoubleLinkedList,
   functionMerger,
   getUniqueIdentificator,
-  HTMLElementHelper,
-  mergeObject,
 } from "./Utility.js"
+
+import HTMLElementHelper from "./Helpers/HTMLElementHelper.js"
+import ObjectHelper from "./Helpers/ObjectHelper.js"
 
 export default class Component extends EventHandler {
   static DEFAULT_COMPONENT_NAME = "Component_name_default"
@@ -149,7 +149,7 @@ export default class Component extends EventHandler {
    * @returns {String||null}
    */
   getOpenedComponent(channel) {
-    return this.openedComponents.get(channel, null)
+    return ObjectHelper.get(this.openedComponents, channel, null)
   }
 
   /**
@@ -158,7 +158,7 @@ export default class Component extends EventHandler {
    * @returns {String||null}
    */
   getActiveComponent(channel) {
-    return this.activeComponents.get(channel, null)
+    return ObjectHelper.get(this.activeComponents, channel, null)
   }
 
   /**
@@ -344,7 +344,7 @@ export default class Component extends EventHandler {
    * @returns {Component}
    */
   addAttributes(attributes) {
-    this.attributes = mergeObject(this.attributes, attributes)
+    this.attributes = ObjectHelper.merge(this.attributes, attributes)
     if (this.isBuilt) this.applyAttributes()
     return this
   }
@@ -886,18 +886,26 @@ export default class Component extends EventHandler {
     let pixelSize = Component.getPixelSize()
     let size = this.getSize().scale(pixelSize)
     let position = this.getPosition().scale(pixelSize)
-    let mainDecoration = this.decorations.get("main", () => ({}))
+    let mainDecoration = ObjectHelper.get(this.decorations, "main", () => ({}))
     let decoration = mainDecoration(size, position, pixelSize)
     if (this.isActive) {
-      let activeDecoration = this.decorations.get("active", () => ({}))
-      decoration = mergeObject(
+      let activeDecoration = ObjectHelper.get(
+        this.decorations,
+        "active",
+        () => ({})
+      )
+      decoration = ObjectHelper.merge(
         decoration,
         activeDecoration(size, position, pixelSize)
       )
     }
     if (this.isHovered) {
-      let hoverDecoration = this.decorations.get("hover", () => ({}))
-      decoration = mergeObject(
+      let hoverDecoration = ObjectHelper.get(
+        this.decorations,
+        "hover",
+        () => ({})
+      )
+      decoration = ObjectHelper.merge(
         decoration,
         hoverDecoration(size, position, pixelSize)
       )
@@ -1047,7 +1055,7 @@ export default class Component extends EventHandler {
    * @returns {Component}
    */
   copy(toCopy = {}) {
-    let _toCopy = mergeObject(
+    let _toCopy = ObjectHelper.merge(
       this.constructor.copyConfig.includeProperties ||
         Component.copyConfig.includeProperties,
       toCopy
@@ -1088,7 +1096,7 @@ export default class Component extends EventHandler {
             if (this[key] != undefined)
               if (this[key].copy) copy[key] = this[key].copy()
               else if (this[key] instanceof Object) {
-                copy[key] = copyObject(this[key])
+                copy[key] = ObjectHelper.copy(this[key])
               } else {
                 copy[key] = this[key]
               }

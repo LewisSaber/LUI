@@ -1,5 +1,6 @@
 import Component from "./Component.js"
-import { HTMLElementHelper, mergeObject } from "./Utility.js"
+import HTMLElementHelper from "./Helpers/HTMLElementHelper.js"
+import ObjectHelper from "./Helpers/ObjectHelper.js"
 export default class BackGround extends Component {
   constructor() {
     super()
@@ -23,7 +24,7 @@ export default class BackGround extends Component {
     return this
   }
 
-  static copyConfig = mergeObject(Component.copyConfig, {
+  static copyConfig = ObjectHelper.merge(Component.copyConfig, {
     includeProperties: {
       img: true,
     },

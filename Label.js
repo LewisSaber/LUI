@@ -1,5 +1,5 @@
 import Component from "./Component.js"
-import { mergeObject } from "./Utility.js"
+import ObjectHelper from "./Helpers/ObjectHelper.js"
 
 export default class Label extends Component {
   constructor() {
@@ -36,7 +36,7 @@ export default class Label extends Component {
     this.container.style.color = this.color
   }
 
-  static copyConfig = mergeObject(Component.copyConfig, {
+  static copyConfig = ObjectHelper.merge(Component.copyConfig, {
     includeProperties: {
       text: true,
       color: true,

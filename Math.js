@@ -1,6 +1,3 @@
-//import SimpleDataFrame from "./SimpleDataFrame.js"
-import { mergeObject } from "./Utility.js"
-
 export class Line {
   constructor(a = new Vector(), b = new Vector()) {
     this.start = a

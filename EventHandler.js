@@ -1,4 +1,5 @@
-import { copyObject, getUniqueIdentificator } from "./Utility.js"
+import ObjectHelper from "./Helpers/ObjectHelper.js"
+import { getUniqueIdentificator } from "./Utility.js"
 
 export default class EventHandler {
   constructor() {
@@ -53,7 +54,7 @@ export default class EventHandler {
     return this
   }
   copySubscribers() {
-    return copyObject(this.subscribers)
+    return ObjectHelper.copy(this.subscribers)
   }
   copySubscribersFrom(event_handler) {
     if (event_handler instanceof EventHandler) {

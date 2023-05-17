@@ -1,5 +1,5 @@
 import Component from "./Component.js"
-import { HTMLElementHelper } from "./Utility.js"
+import HTMLElementHelper from "./Helpers/HTMLElementHelper.js"
 import { Vector } from "./Math.js"
 
 export default class MainComponent extends Component {
