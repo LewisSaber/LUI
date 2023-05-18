@@ -164,30 +164,17 @@ export default class Component extends EventHandler {
    */
   getSize(sizeOfParent) {
     let size = this.size.copy()
-    let parentSize
 
-    if (isNaN(size.x)) {
-      parentSize ??= sizeOfParent || this.parent.getSize()
-      if (size.x.endsWith("%") || size.x.endsWith("w"))
-        size.x = (parentSize.x * size.x.slice(0, -1)) / 100
-      else if (size.x.endsWith("h"))
-        size.x = (parentSize.y * size.x.slice(0, -1)) / 100
-    }
-    if (isNaN(size.y)) {
-      parentSize ??= sizeOfParent || this.parent.getSize()
-      if (size.y.endsWith("%") || size.y.endsWith("h"))
-        size.y = (parentSize.y * size.y.slice(0, -1)) / 100
-      else if (size.y.endsWith("w"))
-        size.y = (parentSize.x * size.x.slice(0, -1)) / 100
-    }
+    size.x = this.calculateValue(size.x, sizeOfParent, "x")
+    size.y = this.calculateValue(size.y, sizeOfParent, "y")
 
     if (size.x == Component.PARENT_SIZE_DETERMINER) {
-      parentSize ??= sizeOfParent || this.parent.getSize()
-      size.x = parentSize.x - this.position.x
+      sizeOfParent ??= this.hasParent() ? this.parent.getSize() : new Vector()
+      size.x = sizeOfParent.x - this.position.x
     }
     if (size.y == Component.PARENT_SIZE_DETERMINER) {
-      parentSize ??= sizeOfParent || this.parent.getSize()
-      size.y = parentSize.y - this.position.y
+      sizeOfParent ??= this.hasParent() ? this.parent.getSize() : new Vector()
+      size.y = sizeOfParent.y - this.position.y
     }
 
     return size
@@ -200,42 +187,11 @@ export default class Component extends EventHandler {
   getFullSize(sizeOfParent) {
     let size = this.getSize(sizeOfParent)
     let margin = this.margin.copy()
-    let parentSize
-    //top margin
-    if (isNaN(margin.x)) {
-      parentSize ??= sizeOfParent || this.parent.getSize()
-      if (margin.x.endsWith("%") || margin.x.endsWith("h"))
-        margin.x = (parentSize.y * margin.x.slice(0, -1)) / 100
-      else if (margin.x.endsWith("w"))
-        margin.x = (parentSize.x * margin.x.slice(0, -1)) / 100
-    }
 
-    //bottom margin
-    if (isNaN(margin.y)) {
-      parentSize ??= sizeOfParent || this.parent.getSize()
-      if (margin.y.endsWith("%") || margin.y.endsWith("h"))
-        margin.y = (parentSize.y * margin.y.slice(0, -1)) / 100
-      else if (margin.x.endsWith("w"))
-        margin.y = (parentSize.x * margin.y.slice(0, -1)) / 100
-    }
-
-    //left margin
-    if (isNaN(margin.z)) {
-      parentSize ??= sizeOfParent || this.parent.getSize()
-      if (margin.z.endsWith("%") || margin.z.endsWith("w"))
-        margin.z = (parentSize.x * margin.z.slice(0, -1)) / 100
-      else if (margin.x.endsWith("h"))
-        margin.z = (parentSize.y * margin.z.slice(0, -1)) / 100
-    }
-
-    //right margin
-    if (isNaN(margin.a)) {
-      parentSize ??= sizeOfParent || this.parent.getSize()
-      if (margin.a.endsWith("%") || margin.a.endsWith("w"))
-        margin.a = (parentSize.x * margin.a.slice(0, -1)) / 100
-      else if (margin.x.endsWith("h"))
-        margin.a = (parentSize.y * margin.a.slice(0, -1)) / 100
-    }
+    margin.x = this.calculateValue(margin.x, sizeOfParent, "y")
+    margin.y = this.calculateValue(margin.y, sizeOfParent, "y")
+    margin.z = this.calculateValue(margin.z, sizeOfParent, "x")
+    margin.a = this.calculateValue(margin.a, sizeOfParent, "x")
 
     return new Vector(
       size.x + margin.z + margin.a,
@@ -254,62 +210,38 @@ export default class Component extends EventHandler {
    * Get position of component
    * @returns {Vector}
    */
-  getPosition(sizeOfParent) {
+  getPosition(sizeOfParent, size) {
     let position = this.position.copy()
-    let size = this.getSize()
-    if (this.parent) {
-      let parentSize = sizeOfParent ? sizeOfParent : this.parent.getSize()
+    if (this.hasParent()) {
       let positionMargin = new Vector(this.margin.z, this.margin.x)
 
-      if (isNaN(position.x)) {
-        if (position.x.endsWith("%") || position.x.endsWith("w"))
-          position.x = (parentSize.x * position.x.slice(0, -1)) / 100
-        else if (position.x.endsWith("h"))
-          position.x = (parentSize.y * position.x.slice(0, -1)) / 100
-      }
-
-      if (isNaN(position.y)) {
-        if (position.y.endsWith("%") || position.y.endsWith("h"))
-          position.y = (parentSize.y * position.y.slice(0, -1)) / 100
-        else if (position.y.endsWith("w"))
-          position.y = (parentSize.x * position.y.slice(0, -1)) / 100
-      }
+      position.x = this.calculateValue(position.x, sizeOfParent, "x")
+      position.y = this.calculateValue(position.y, sizeOfParent, "y")
 
       if (this.options.position.centered) {
+        sizeOfParent ??= this.parent.getSize()
+        size ??= this.getSize(sizeOfParent)
         if (this.options.position.centered.x) {
-          position.x = (parentSize.x - size.x) * 0.5
+          position.x = (sizeOfParent.x - size.x) * 0.5
         }
         if (this.options.position.centered.y) {
-          position.y = (parentSize.y - size.y) * 0.5
+          position.y = (sizeOfParent.y - size.y) * 0.5
         }
       }
 
       if (this.options.position.fromButtom) {
-        position.y = parentSize.y - this.position.y - size.y
+        sizeOfParent ??= this.parent.getSize()
+        size ??= this.getSize(sizeOfParent)
+        position.y = sizeOfParent.y - this.position.y - size.y
       }
       if (this.options.position.fromRight) {
-        position.x = parentSize.x - this.position.x - size.x
+        sizeOfParent ??= this.parent.getSize()
+        size ??= this.getSize(sizeOfParent)
+        position.x = sizeOfParent.x - this.position.x - size.x
       }
-
-      if (isNaN(positionMargin.x)) {
-        if (positionMargin.x.endsWith("%") || positionMargin.x.endsWith("w")) {
-          position.x += (parentSize.x * positionMargin.x.slice(0, -1)) / 100
-        } else if (positionMargin.x.endsWith("h"))
-          position.x += (parentSize.y * positionMargin.x.slice(0, -1)) / 100
-      } else {
-        position.x += positionMargin.x
-      }
-
-      if (isNaN(positionMargin.y)) {
-        if (positionMargin.y.endsWith("%") || positionMargin.y.endsWith("h"))
-          position.y += (parentSize.y * positionMargin.y.slice(0, -1)) / 100
-        else if (positionMargin.x.endsWith("w"))
-          position.y += (parentSize.x * positionMargin.y.slice(0, -1)) / 100
-      } else {
-        position.y += positionMargin.y
-      }
+      position.x += this.calculateValue(positionMargin.x, sizeOfParent, "x")
+      position.y += this.calculateValue(positionMargin.y, sizeOfParent, "y")
     }
-
     return position
   }
 
@@ -1053,7 +985,8 @@ export default class Component extends EventHandler {
 
   calculateValue(size, parentSize, type) {
     if (isNaN(size)) {
-      if (parentSize == undefined) parentSize = this.parent.getSize()
+      if (parentSize == undefined)
+        parentSize = this.hasParent() ? this.parent.getSize() : new Vector()
       if (size.endsWith("%"))
         return (parentSize[type] * size.slice(0, -1)) / 100
       if (size.endsWith("w")) return (parentSize.x * size.slice(0, -1)) / 100
@@ -1249,7 +1182,7 @@ export default class Component extends EventHandler {
     }
     let size = this.getSize(sizeOfParent)
     this.applySize(size)
-    let position = this.getPosition(sizeOfParent)
+    let position = this.getPosition(sizeOfParent, size)
     this.applyPosition(position)
 
     for (let channel in this.components) {
