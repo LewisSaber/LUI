@@ -16,7 +16,26 @@ export default class MainComponent extends Component {
     this.setFontSize(0.3).computeSize()
     this.build().resize()
     HTMLElementHelper.setSize(this.container, new Vector())
-    window.addEventListener("resize", () => this.computeSize().resize())
+    window.addEventListener("resize", (evt) => {
+      const originalOverflow = {
+        overflow: this.container.style.overflow,
+        overflowX: this.container.style.overflowX,
+        overflowY: this.container.style.overflowY,
+      }
+
+      // Remove the overflow styles
+      this.container.style.overflow = "hidden"
+      this.container.style.overflowX = "hidden"
+      this.container.style.overflowY = "hidden"
+
+      this.computeSize().resize()
+
+      // Reapply the original overflow styles
+      this.container.style.overflow = originalOverflow.overflow
+      this.container.style.overflowX = originalOverflow.overflowX
+      this.container.style.overflowY = originalOverflow.overflowY
+    })
+
     document.body.appendChild(this.getContainer())
     this.open()
   }
@@ -55,7 +74,7 @@ export default class MainComponent extends Component {
   }
 
   getWindowSize() {
-    return new Vector(window.innerWidth, window.innerHeight - 1)
+    return new Vector(window.visualViewport.width, window.visualViewport.height)
   }
 
   setWidth(width) {

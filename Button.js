@@ -7,7 +7,7 @@ export default class Button extends Component {
     super()
   }
 
-  setText(text, fontSize = this.fontSize, color = "black", x = 0, y = 0) {
+  setText(text, fontSize, color = "black", x, y) {
     if (!this.textLabel) {
       this.textLabel = new Label().setSizeEqualToParent()
       this.textLabel.options.informational.is_button_text_label = true
@@ -18,10 +18,10 @@ export default class Button extends Component {
     }
 
     this.textLabel.centerText()
-    this.textLabel.setText(text).setColor(color).setFontSize(fontSize)
+    this.textLabel.setText(text).setColor(color)
 
-    if (this.textLabel.position.x != x || this.textLabel.position.y != y)
-      this.textLabel.setPosition(x, y)
+    if (fontSize) this.textLabel.setFontSize(fontSize)
+    if (x || y) this.textLabel.setPosition(x, y)
 
     return this
   }

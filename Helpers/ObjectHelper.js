@@ -33,7 +33,12 @@ const ObjectHelper = {
 
       if (element && element.copy) {
         element = element.copy()
-      } else if (element instanceof Object && !(element instanceof Function)) {
+      } else if (
+        element &&
+        (Object.getPrototypeOf(element) === Object.prototype ||
+          Array.isArray(element)) &&
+        !(element instanceof Function)
+      ) {
         element = ObjectHelper.copy(element)
       }
 
