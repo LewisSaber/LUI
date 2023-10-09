@@ -150,7 +150,6 @@ export class DoubleLinkedList {
     let node = leftNode.next
     while (node != rightNode) {
       if (node == undefined) {
-        console.log(leftNode == rightNode)
         console.error(leftNode, "and", rightNode, "are not in order!")
         return false
       }

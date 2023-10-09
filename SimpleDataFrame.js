@@ -6,6 +6,7 @@ import { Vector } from "./Math.js"
 import EventHandler from "./EventHandler.js"
 import ObjectHelper from "./Helpers/ObjectHelper.js"
 import ArrayHelper from "./Helpers/ArrayHelper.js"
+import DataFrameRegistry from "./DataFrameRegistry.js"
 
 export default class SimpleDataFrame extends EventHandler {
   static events = {
@@ -17,7 +18,10 @@ export default class SimpleDataFrame extends EventHandler {
     this.df = []
     this.df.push(rowNames)
     this.fontSize = 0.6
-    this.maxsize = new Vector()
+    this.maxsize = {
+      imagine: new Vector(),
+      real: new Vector(),
+    }
     this.options = {
       showRowNames: true,
       isVertical: false,
@@ -28,6 +32,7 @@ export default class SimpleDataFrame extends EventHandler {
       row: "fuck u",
       ascending: false,
     }
+    this.name = ""
     this.cellDecoration = {}
   }
   copy() {
@@ -35,15 +40,19 @@ export default class SimpleDataFrame extends EventHandler {
   }
   loadOptions(options = {}) {
     this.options = ObjectHelper.merge(this.options, options)
+    this.applyRightOverflow()
+    return this
   }
   setCellDecoration(decoration) {
     this.cellDecoration = decoration
     if (this.table) this.refreshTable()
+    return this
   }
 
   isEmpty() {
     return this.df[1] == undefined
   }
+
   addArray(array) {
     for (const value of array) {
       if (!this.addDictionary(value)) {
@@ -51,6 +60,8 @@ export default class SimpleDataFrame extends EventHandler {
         break
       }
     }
+    if (this.table) this.refreshTable()
+    return this
   }
   addDictionary(dict) {
     if (!Array.isArray(dict) && dict instanceof Object) {
@@ -65,17 +76,51 @@ export default class SimpleDataFrame extends EventHandler {
   createTable() {
     this.table = new Component()
     this.table._defaultSetSize = this.table.setSize
-
+    this.table.addEventListener(Component.events.build, () => {
+      this.table.getContainer().style.overflow = "auto"
+    })
     this.table.setSize = (x, y) => {
       this.table._defaultSetSize(x, y)
-      this.maxsize = this.table.getSize()
+
+      this.maxsize = {
+        imagine: new Vector(x, y),
+      }
+      this.maxsize.real = this.table.calculateSize(this.maxsize.imagine)
+
       return this.table
     }
+    this.table.addEventListener(Component.events.resizeEnd, () => {
+      this.maxsize.real = this.table.calculateSize(this.maxsize.imagine)
+    })
+    this.applyRightOverflow()
     /**
      * @type {Component[][]}
      */
     this.tableComponents = [[]]
     // this.table.setContextMenu(this.createContextMenu())
+  }
+
+  applyRightOverflow() {
+    if (this.table) {
+      if (this.table.isBuilt) {
+        if (this.options.isVertical) {
+          this.table.getContainer().style.overflowX = "hidden"
+          this.table.getContainer().style.overflowY = "auto"
+        } else {
+          this.table.getContainer().style.overflowY = "hidden"
+          this.table.getContainer().style.overflowX = "auto"
+        }
+      } else {
+        this.table.addEventListener(
+          Component.events.build,
+          () => {
+            this.applyRightOverflow()
+          },
+          undefined,
+          { once: true }
+        )
+      }
+    }
   }
 
   // createContextMenu() {
@@ -126,8 +171,6 @@ export default class SimpleDataFrame extends EventHandler {
   refreshTable() {
     if (this.table == undefined) this.createTable()
 
-    // this.maxsize = this.table.size
-
     let rowWidths = this.getCellBuildingInfo()
     let tableLength =
       (ArrayHelper.sum(rowWidths) + rowWidths.length) * this.fontSize * 0.5
@@ -140,10 +183,13 @@ export default class SimpleDataFrame extends EventHandler {
         : this.getWidth())
 
     this.table._defaultSetSize(
-      this.maxsize.x > 0
-        ? Math.min(this.maxsize.x, tableLength + 0.5)
+      this.maxsize.real.x > 0
+        ? Math.min(this.maxsize.real.x, tableLength + 0.5)
         : tableLength + 0.5,
-      this.maxsize.y > 0 ? Math.min(tableHeight, this.maxsize.y) : tableHeight
+      this.maxsize.real.y > 0
+        ? Math.min(this.maxsize.real.y, tableHeight) +
+            (this.maxsize.real.x < tableLength ? 0.5 : 0)
+        : tableHeight
     )
 
     if (!this.options.showRowNames && !this.options.isVertical)
@@ -234,12 +280,24 @@ export default class SimpleDataFrame extends EventHandler {
     if (this.table) this.refreshTable()
     return this
   }
-  addColumn(name, data) {
+  addColumn(name, data = []) {
     for (let i = 0; i <= data.length; i++) {
       if (this.df[i] == undefined) this.df[i] = []
       this.df[i].push(i == 0 ? name : data[i - 1])
     }
     return this
+  }
+  addRow(array) {
+    this.df.push(array)
+    return this
+  }
+
+  getRow(i) {
+    return this.df[i + 1]
+  }
+
+  getValue(i, j) {
+    return this.df.at(i + 1)?.at(j)
   }
   /**
      Refresh layers:
@@ -417,7 +475,7 @@ export default class SimpleDataFrame extends EventHandler {
     this.df = [this.df[0]]
     if (this.table)
       for (let i = 1; i < this.tableComponents.length; i++) {
-        for (let j = 0; j < this.tableComponents[i].length; i++) {
+        for (let j = 0; j < this.tableComponents[i].length; j++) {
           this.table.removeComponent(this.tableComponents[i][j], false)
         }
       }
@@ -438,5 +496,16 @@ export default class SimpleDataFrame extends EventHandler {
       return {}
     }
     return keyRow_list.toDictionary(valueRow_list)
+  }
+
+  getName() {
+    return this.name
+  }
+
+  setName(name) {
+    if (this.getName() != "") DataFrameRegistry.removeDataFrame(this.getName())
+    this.name = name
+    DataFrameRegistry.addDataFrame(this)
+    return this
   }
 }

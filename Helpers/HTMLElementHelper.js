@@ -1,3 +1,4 @@
+import { Vector } from "../Math.js"
 import ObjectHelper from "./ObjectHelper.js"
 
 const HTMLElementHelper = {
@@ -8,6 +9,13 @@ const HTMLElementHelper = {
   setPosition(element, positionVector, type = "px") {
     element.style.left = positionVector.x + type
     element.style.top = positionVector.y + type
+  },
+
+  getSize(element) {
+    return new Vector(
+      +element.style.width.slice(0, -2),
+      +element.style.height.slice(0, -2)
+    )
   },
 
   setBackgroundImage(element, url) {

@@ -22,6 +22,7 @@ export default class Component extends EventHandler {
     close: "close",
     open: "open",
     build: "build",
+    resizeEnd: "resizeEnd",
   }
   constructor() {
     super()
@@ -163,23 +164,13 @@ export default class Component extends EventHandler {
    * @returns {Vector}
    */
   getSize(sizeOfParent) {
-    let size = this.size.copy()
-
-    size.x = this.calculateValue(size.x, sizeOfParent, "x")
-    size.y = this.calculateValue(size.y, sizeOfParent, "y")
-
-    if (size.x == Component.PARENT_SIZE_DETERMINER) {
-      sizeOfParent ??= this.hasParent() ? this.parent.getSize() : new Vector()
-      size.x = sizeOfParent.x - this.position.x
-    }
-    if (size.y == Component.PARENT_SIZE_DETERMINER) {
-      sizeOfParent ??= this.hasParent() ? this.parent.getSize() : new Vector()
-      size.y = sizeOfParent.y - this.position.y
-    }
-
-    return size
+    return this.calculateSize(this.size.copy(), sizeOfParent)
   }
 
+  getSizeInPixels() {
+    if (this.isBuilt) return HTMLElementHelper.getSize(this.getContainer())
+    return new Vector()
+  }
   /**
    * Get size of component with margins
    * @returns {Vector}
@@ -560,7 +551,7 @@ export default class Component extends EventHandler {
    * @returns {Component}
    */
   setSizeEqualToParent() {
-    this.size = new Vector(
+    this.setSize(
       Component.PARENT_SIZE_DETERMINER,
       Component.PARENT_SIZE_DETERMINER
     )
@@ -992,7 +983,7 @@ export default class Component extends EventHandler {
       if (size.endsWith("w")) return (parentSize.x * size.slice(0, -1)) / 100
       if (size.endsWith("h")) return (parentSize.y * size.slice(0, -1)) / 100
     }
-    return size
+    return +size
   }
   new() {
     return this.copy()
@@ -1013,6 +1004,23 @@ export default class Component extends EventHandler {
       position: true,
       parentRelation: true,
     },
+  }
+
+  calculateSize(size, sizeOfParent) {
+    size = size.copy()
+    size.x = this.calculateValue(size.x, sizeOfParent, "x")
+    size.y = this.calculateValue(size.y, sizeOfParent, "y")
+
+    if (size.x == Component.PARENT_SIZE_DETERMINER) {
+      sizeOfParent ??= this.hasParent() ? this.parent.getSize() : new Vector()
+      size.x = sizeOfParent.x - this.position.x
+    }
+    if (size.y == Component.PARENT_SIZE_DETERMINER) {
+      sizeOfParent ??= this.hasParent() ? this.parent.getSize() : new Vector()
+      size.y = sizeOfParent.y - this.position.y
+    }
+
+    return size
   }
 
   /**
@@ -1194,6 +1202,7 @@ export default class Component extends EventHandler {
     this.applyFontSize(sizeOfParent)
     this.recalculateFloat()
     if (this.parent && this.getFloat() != "none") this.parent.recalculateFloat()
+    this.dispatchEvent(Component.events.resizeEnd)
   }
 
   hide() {
@@ -1310,6 +1319,7 @@ export default class Component extends EventHandler {
     window.float = floatList
 
     if (size.x < max_x) size.x = max_x
+
     let outLine = new DoubleLinkedList()
     outLine.addValue(new Line(new Vector(), new Vector(size.x, 0)))
     let leftLineNode
@@ -1337,6 +1347,7 @@ export default class Component extends EventHandler {
             currentY < leftLineNode.getValue().start.y
           ) {
             start.getValue().end.x = leftLineNode.getValue().end.x
+
             outLine.connect2Nodes(start, leftLineNode)
             start = leftLineNode.next
             accumulatedLength = 0
@@ -1346,6 +1357,7 @@ export default class Component extends EventHandler {
               .getValue()
               .addVec(new Vector(0, component.cashedSize.y))
             start.value.end.x = leftLineNode.value.end.x
+
             outLine.connect2Nodes(start, leftLineNode.next)
             if (leftLineNode.next == undefined) {
               leftLineNode = outLine.head
@@ -1408,6 +1420,13 @@ export default class Component extends EventHandler {
     }
     delete this.queue
     this.dispatchEvent(Component.events.build)
+    return this
+  }
+
+  /**
+   * Return the object its called on, can be used to do some action in middle of method chaining
+   */
+  someAction() {
     return this
   }
 

@@ -10,6 +10,7 @@ export default class Input extends Component {
   constructor() {
     super()
     this.type = "text"
+    this.radioName = undefined
   }
   createHTMLElement() {
     this.container = document.createElement("input")
@@ -30,6 +31,21 @@ export default class Input extends Component {
         undefined,
         { once: true }
       )
+    return this
+  }
+
+  setRadioName(name) {
+    if (this.isBuilt) {
+      this.radioName = name
+      this.applyRadioName()
+    } else {
+      this.addEventListener(
+        Component.events.build,
+        () => this.setRadioName(name),
+        undefined,
+        { once: true }
+      )
+    }
     return this
   }
 
@@ -65,6 +81,10 @@ export default class Input extends Component {
     })
   }
 
+  applyRadioName() {
+    this.container.name = this.radioName
+  }
+
   getFile() {
     if (this.isBuilt)
       if (this.type == "file") {
@@ -74,15 +94,36 @@ export default class Input extends Component {
   }
   getValue(placeholder = true) {
     if (this.isBuilt) {
-      return (
-        this.container.value || (placeholder ? this.container.placeholder : "")
-      )
+      switch (this.type) {
+        case "radio":
+        case "checkbox":
+          return this.container.checked
+        case "number":
+          return (
+            +this.container.value ||
+            (placeholder ? +this.container.placeholder : 0)
+          )
+        default:
+          return (
+            this.container.value ||
+            (placeholder ? this.container.placeholder : "")
+          )
+      }
     }
     return ""
   }
   setValue(value, triggerInput = true) {
     if (this.isBuilt) {
-      this.container.value = value
+      switch (this.type) {
+        case "radio":
+        case "checkbox":
+          this.container.checked = value
+          break
+        default:
+          this.container.value = value
+          break
+      }
+
       if (triggerInput) this.dispatchEvent(Input.events.input)
     } else {
       this.addEventListener(
