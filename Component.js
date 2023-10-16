@@ -232,13 +232,14 @@ export default class Component extends EventHandler {
       if (this.options.position.fromButtom) {
         sizeOfParent ??= this.parent.getSize()
         size ??= this.getSize(sizeOfParent)
-        position.y = sizeOfParent.y - this.position.y - size.y
+        position.y = sizeOfParent.y - position.y - size.y
       }
       if (this.options.position.fromRight) {
         sizeOfParent ??= this.parent.getSize()
         size ??= this.getSize(sizeOfParent)
-        position.x = sizeOfParent.x - this.position.x - size.x
+        position.x = sizeOfParent.x - position.x - size.x
       }
+
       position.x += this.calculateValue(positionMargin.x, sizeOfParent, "x")
       position.y += this.calculateValue(positionMargin.y, sizeOfParent, "y")
     }
@@ -877,17 +878,9 @@ export default class Component extends EventHandler {
    * @param {Vector} pixelSize
    * @param {Vector} size
    */
-  applyFontSize(size) {
+  applyFontSize(sizeOfParent, sizeOfComponent) {
     let fontSize = this.getFontSize()
-
-    if (isNaN(fontSize) && fontSize.endsWith("%")) {
-      if (size == undefined) {
-        if (this.parent != undefined) size = this.parent.getSize()
-        else size = new Vector()
-      }
-
-      fontSize = (size.min() * fontSize.slice(0, -1)) / 100
-    }
+    fontSize = this.calculateValue(fontSize, sizeOfParent, sizeOfComponent)
     this.container.style.fontSize = fontSize * Component.getPixelSize() + "px"
   }
 
@@ -1191,7 +1184,7 @@ export default class Component extends EventHandler {
       }
     }
     this.applyDecoration(size, position)
-    this.applyFontSize(sizeOfParent)
+    this.applyFontSize(sizeOfParent, size)
     this.recalculateFloat()
     if (this.parent && this.getFloat() != "none") this.parent.recalculateFloat()
   }

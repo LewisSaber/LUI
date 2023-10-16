@@ -29,7 +29,7 @@ export class NumberRange {
   }
 }
 let next_id = 0
-export function getUniqueIdentificator() {
+export function getUniqueid() {
   next_id++
   return next_id
 }
@@ -72,6 +72,7 @@ export class DoubleLinkedList {
   constructor() {
     this.length = 0
   }
+
   addValue(value) {
     if (this.head == undefined) {
       this.head = new Node(value)
@@ -189,5 +190,22 @@ export class DoubleLinkedList {
       yield node.value
       node = node.next
     }
+  }
+
+  toArray() {
+    let result = []
+    for (let value of this) result.push(value)
+    return result
+  }
+
+  sort(comparator = (a, b) => a - b) {
+    let array = this.toArray()
+    array.sort(comparator)
+    this.head = undefined
+    this.tail = undefined
+    this.length = 0
+    for (const value of array) this.addValue(value)
+
+    return this
   }
 }

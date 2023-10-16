@@ -20,7 +20,7 @@ export default class EventHandler {
     if (this.subscribers[eventType]) {
       for (const subscriber in this.subscribers[eventType]) {
         let handler = this.subscribers[eventType][subscriber]
-        handler.func(data, this)
+        handler.func(data, this, handler.options)
         if (handler.options.once) delete this.subscribers[eventType][subscriber]
       }
     }
@@ -43,7 +43,7 @@ export default class EventHandler {
   /**
    * Adds a listener to the specified event type and returns the assigned ID.
    * @param {string} eventType - The event type to which the event handler is added.
-   * @param {Function} func - The function to be called when the event fires. It accepts eventData and targetObject as parameters.
+   * @param {Function} func - The function to be called when the event fires. It accepts eventData, targetObject and options as parameters.
    * @param {Object} id_handler - An object whose value field will be assigned to the generated ID.
    * @param {Object} options - Additional options for the event listener.
    * @param {boolean} options.once - Specifies if the listener should fire only once.
