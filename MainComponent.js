@@ -40,6 +40,16 @@ export default class MainComponent extends Component {
     this.open()
   }
 
+  /**
+   *
+   * @param {String} name
+   * @param {Boolean} nested
+   * @returns {Component}
+   */
+  static getComponentByName(name, nested) {
+    return MainComponent.instance.getComponentByName(name, nested)
+  }
+
   applySize() {}
 
   copy() {

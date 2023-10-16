@@ -1,7 +1,7 @@
 import Component from "./Component.js"
 import Input from "./Input.js"
 
-export class TextField extends Component {
+export default class TextField extends Component {
   createHTMLElement() {
     this.container = document.createElement("textarea")
   }

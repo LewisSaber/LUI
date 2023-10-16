@@ -1,6 +1,6 @@
 const ObjectHelper = {
   get(Object, key, default_value = 0) {
-    return Object[key] || default_value
+    return Object[key] ?? default_value
   },
   /**
    * Will overwrite every property of original object with properties of pulling_from
