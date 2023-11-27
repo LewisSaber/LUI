@@ -1181,21 +1181,32 @@ export default class Component extends EventHandler {
     if (sizeOfParent == undefined) {
       sizeOfParent == this.hasParent() ? this.parent.getSize() : new Vector()
     }
+
     let size = this.getSize(sizeOfParent)
     this.applySize(size)
     let position = this.getPosition(sizeOfParent, size)
     this.applyPosition(position)
 
-    for (let channel in this.components) {
-      for (let component in this.components[channel]) {
-        this.components[channel][component].resize(size)
-      }
-    }
+    this.resizeChildren(size)
     this.applyDecoration(size, position)
     this.applyFontSize(sizeOfParent, size)
     this.recalculateFloat()
+    if (this.hasParent()) {
+      this.parent.onChildResize()
+    }
     if (this.parent && this.getFloat() != "none") this.parent.recalculateFloat()
     this.dispatchEvent(Component.events.resizeEnd)
+  }
+
+  resizeChildren(sizeOfParent) {
+    for (let channel in this.components) {
+      for (let component in this.components[channel]) {
+        this.components[channel][component].resize(sizeOfParent)
+      }
+    }
+  }
+  onChildResize() {
+    return false
   }
 
   hide() {
