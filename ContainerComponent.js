@@ -5,16 +5,33 @@ export default class ComponentContainer extends Component {
     let desiredHeight = 0
     let desiredWidth = 0
     for (const component of this.componentsOrder) {
-      let componentSize = component.getFullSize(new Vector(0, 0))
+      if (component.options.isDesiredContainerChild) {
+        let componentSize = component.getFullSize(new Vector(0, 0))
+        let componentPosition = component.getPosition(
+          new Vector(0, 0),
+          componentSize
+        )
+        let topLeftMarginVector = new Vector(
+          component.margin.z,
+          component.margin.x
+        )
+        let finalSize = componentSize
+          .add_vec(componentPosition)
+          .sub_vec(topLeftMarginVector)
 
-      if (componentSize.x > desiredWidth) desiredWidth = componentSize.x
-      if (componentSize.y > desiredHeight) desiredHeight = componentSize.y
+        if (finalSize.x > desiredWidth) desiredWidth = finalSize.x
+        if (finalSize.y > desiredHeight) desiredHeight = finalSize.y
+      }
     }
     return new Vector(desiredWidth, desiredHeight)
   }
-  onChildResize() {
-    this.resize(new Vector(0, 0))
+  onChildResize(child) {
+    if (child.options.isDesiredContainerChild) this.resize()
   }
 
-  resizeChildren() {}
+  resizeChildren(size) {
+    for (const component of this.componentsOrder) {
+      if (!component.options.isDesiredContainerChild) component.resize(size)
+    }
+  }
 }

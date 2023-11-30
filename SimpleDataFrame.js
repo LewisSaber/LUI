@@ -12,6 +12,8 @@ export default class SimpleDataFrame extends EventHandler {
   static events = {
     refresh: "refresh",
     valueChange: "valueChange",
+    newRow: "newRow",
+    newColumn: "newColumn",
   }
   constructor(rowNames) {
     super()
@@ -27,6 +29,7 @@ export default class SimpleDataFrame extends EventHandler {
       isVertical: false,
       allowEditing: false,
       allowSorting: true,
+      defaultCellFiller: 0,
     }
     this.sorted = {
       row: "fuck u",
@@ -73,6 +76,11 @@ export default class SimpleDataFrame extends EventHandler {
       return true
     } else return false
   }
+  setMaxSize(x, y) {
+    this.maxsize.imagine = new Vector(x, y)
+    if (this.table) this.refreshTable()
+    return this
+  }
   createTable() {
     this.table = new Component()
     this.table._defaultSetSize = this.table.setSize
@@ -97,7 +105,35 @@ export default class SimpleDataFrame extends EventHandler {
      * @type {Component[][]}
      */
     this.tableComponents = [[]]
-    // this.table.setContextMenu(this.createContextMenu())
+    this.table.setContextMenu(this.createContextMenu())
+  }
+  createContextMenu() {
+    let menu = new Component().setSize(5, 2).setDecoration({
+      "background-color": "lightgray",
+      border: "inset 3px lightblue",
+    })
+    let addRowButton = new Button()
+      .setName("addRow")
+      .setSize("100%", 1)
+      .setDecoration({ cursor: "pointer", border: "none" })
+      .setHoverDecoration({ "background-color": "lightgray" })
+      .setText("Add Row", 0.8)
+      .addEventListener(Component.events.mousedown, () => {
+        this.options.isVertical ? this.addEmptyRow() : this.addEmptyColumn()
+      })
+      .attachToParent(menu)
+    let addColumnButton = new Button()
+      .setName("addColumn")
+      .setSize("100%", 1)
+      .setPosition(0, 1)
+      .setDecoration({ cursor: "pointer", border: "none" })
+      .setHoverDecoration({ "background-color": "lightgray" })
+      .setText("Add Column", 0.8)
+      .addEventListener(Component.events.mousedown, () => {
+        this.options.isVertical ? this.addEmptyColumn() : this.addEmptyRow()
+      })
+      .attachToParent(menu)
+    return menu
   }
 
   applyRightOverflow() {
@@ -291,6 +327,26 @@ export default class SimpleDataFrame extends EventHandler {
     this.df.push(array)
     return this
   }
+  addEmptyColumn() {
+    let height = this.df.length
+    for (let i = 0; i < height; i++) {
+      if (this.df[i] == undefined) this.df[i] = []
+      this.df[i].push(this.options.defaultCellFiller)
+    }
+    this.dispatchEvent(SimpleDataFrame.events.newColumn)
+    if (this.table) this.refreshTable()
+    return this
+  }
+  addEmptyRow() {
+    this.df.push(
+      Array(ObjectHelper.get(this.df, 0, [0]).length).fill(
+        this.options.defaultCellFiller
+      )
+    )
+    this.dispatchEvent(SimpleDataFrame.events.newRow)
+    if (this.table) this.refreshTable()
+    return this
+  }
 
   getRow(i) {
     return this.df[i + 1]
@@ -317,7 +373,8 @@ export default class SimpleDataFrame extends EventHandler {
           break
       }
     }
-    this.dispatchEvent(Component.events.valueChange, {
+
+    this.dispatchEvent(SimpleDataFrame.events.valueChange, {
       newValue: value,
       at: new Vector(row, column),
     })

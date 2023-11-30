@@ -46,7 +46,7 @@ export default class MainComponent extends Component {
    * @param {Boolean} nested
    * @returns {Component}
    */
-  static getComponentByName(name, nested) {
+  static getComponentByName(name, nested = true) {
     return MainComponent.instance.getComponentByName(name, nested)
   }
 

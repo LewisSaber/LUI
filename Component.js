@@ -48,6 +48,7 @@ export default class Component extends EventHandler {
 
     this.options = {
       float: "none",
+      isDesiredContainerChild: true,
       pointerEvents: true,
       position: {
         fromButtom: false,
@@ -471,6 +472,11 @@ export default class Component extends EventHandler {
     return this
   }
 
+  setIsDesiredContainerChildOption(state = true) {
+    this.options.isDesiredContainerChild = state
+    return this
+  }
+
   /**
    * Sets Id to some unique value, can be only set once
    * @returns {Component}
@@ -578,7 +584,8 @@ export default class Component extends EventHandler {
     this.contextMenu.closingId = window.MainComponent.addEventListener(
       Component.events.mousedown,
       (_, target) => {
-        target.contextMenu.close()
+        let menu = target.getOpenedComponent("context")
+        if (menu != null) menu.close()
       }
     )
     return this
@@ -909,7 +916,8 @@ export default class Component extends EventHandler {
     this.dispatchEvent(Component.events.contextmenu, evt)
     if (this.contextMenu) {
       evt.stopPropagation()
-      let clickPosition = new Vector(evt.clientX, evt.clientY)
+      console.log(evt)
+      let clickPosition = new Vector(evt.pageX, evt.pageY)
       this.contextMenu.setPosition(
         clickPosition.scale(1 / Component.getPixelSize())
       )
@@ -1111,6 +1119,7 @@ export default class Component extends EventHandler {
         node = node.next
       }
       if (found) {
+        component.close()
         if (this.componentsOrder.removeNodeAt(index)) {
           delete this.components[component.getChannel()][component.getId()]
           if (component.getFloat() != "none") {
@@ -1157,21 +1166,37 @@ export default class Component extends EventHandler {
    * @returns {Component}
    */
   handleComponentOpen(component) {
-    this.openedComponents[component.getChannel()] = component.getName()
-    for (const component_in in this.components[component.getChannel()]) {
-      if (
-        component.getId() ==
-        this.components[component.getChannel()][component_in].getId()
-      ) {
-        continue
-      }
-
-      this.components[component.getChannel()][component_in].close()
+    if (component.getChannel() != "none") {
+      if (this.openedComponents[component.getChannel()] != undefined)
+        component.close()
+      this.openedComponents[component.getChannel()] = component
     }
+
+    // for (const component_in in this.components[component.getChannel()]) {
+    //   if (
+    //     component.getId() ==
+    //     this.components[component.getChannel()][component_in].getId()
+    //   ) {
+    //     continue
+    //   }
+
+    //   this.components[component.getChannel()][component_in].close()
+    // }
     // if (component.getChannel() == "none") {
     if (component.getFloat() != "none") this.recalculateFloat()
 
     return this
+  }
+
+  handleComponentClose(component) {
+    if (
+      component.getChannel() != "none" &&
+      this.getOpenedComponent(component.getChannel()).getId() ==
+        component.getId()
+    ) {
+      this.openedComponents[component.getChannel()] = undefined
+    }
+    if (component.getFloat() != "none") this.recalculateFloat()
   }
 
   /**
@@ -1192,16 +1217,16 @@ export default class Component extends EventHandler {
     this.applyFontSize(sizeOfParent, size)
     this.recalculateFloat()
     if (this.hasParent()) {
-      this.parent.onChildResize()
+      this.parent.onChildResize(this)
     }
     if (this.parent && this.getFloat() != "none") this.parent.recalculateFloat()
     this.dispatchEvent(Component.events.resizeEnd)
   }
 
-  resizeChildren(sizeOfParent) {
+  resizeChildren(size) {
     for (let channel in this.components) {
       for (let component in this.components[channel]) {
-        this.components[channel][component].resize(sizeOfParent)
+        this.components[channel][component].resize(size)
       }
     }
   }
@@ -1229,6 +1254,9 @@ export default class Component extends EventHandler {
     if (this.getFloat() != "none") {
       this.recalculateFloat()
     }
+    if (this.hasParent()) {
+      this.getParent().handleComponentClose(this)
+    }
     this.dispatchEvent(Component.events.close, evt)
     return this
   }
@@ -1237,7 +1265,7 @@ export default class Component extends EventHandler {
     this.isOpen = true
     this.isVisible = true
     if (this.parent && this.parent.isOpen) {
-      if (this.getChannel() != "none") this.parent.handleComponentOpen(this)
+      this.parent.handleComponentOpen(this)
     }
 
     this.container.style.display = "block"
@@ -1305,7 +1333,7 @@ export default class Component extends EventHandler {
   recalculateFloat() {
     if (this.floatingComponents == 0) return this
 
-    // console.log("recalculating floating")
+    //console.log("recalculating floating")
 
     let floatList = new DoubleLinkedList()
     let size = this.getSize()
@@ -1342,20 +1370,19 @@ export default class Component extends EventHandler {
             leftLineNode = outLine.head
             start = outLine.head
             accumulatedLength = 0
-            currentY = leftLineNode.getValue().start.y
           }
           accumulatedLength += leftLineNode.getValue().getHorizontalLength()
+          currentY = leftLineNode.getValue().start.y
 
-          if (
-            accumulatedLength < component.cashedSize.x &&
-            currentY < leftLineNode.getValue().start.y
-          ) {
+          if (currentY >= start.getValue().start.y && start != leftLineNode) {
+            outLine.connect2Nodes(start, leftLineNode.next)
             start.getValue().end.x = leftLineNode.getValue().end.x
+            start.getValue().start.y = currentY
+            start.getValue().end.y = currentY
 
-            outLine.connect2Nodes(start, leftLineNode)
-            start = leftLineNode.next
-            accumulatedLength = 0
-          } else if (accumulatedLength == component.cashedSize.x) {
+            leftLineNode = start
+          }
+          if (accumulatedLength == component.cashedSize.x) {
             component.setPosition(start.getValue().start)
             start.value = start
               .getValue()
@@ -1365,6 +1392,7 @@ export default class Component extends EventHandler {
             outLine.connect2Nodes(start, leftLineNode.next)
             if (leftLineNode.next == undefined) {
               leftLineNode = outLine.head
+              accumulatedLength = 0
             } else {
               leftLineNode = leftLineNode.next
             }
@@ -1378,11 +1406,13 @@ export default class Component extends EventHandler {
             splitted.left = splitted.left.addVec(
               new Vector(0, component.cashedSize.y)
             )
+
             if (start == leftLineNode) {
               start.value = splitted.left
               outLine.addNodeAfter(start, splitted.right)
               leftLineNode = leftLineNode.next
             } else {
+              console.log("mayeb need fix")
               leftLineNode.value = splitted.right
               start.getValue().end.x = splitted.right.start.x
               start.value = start.value.addVec(

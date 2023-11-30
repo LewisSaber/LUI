@@ -1,15 +1,16 @@
-import Button from "./Button.js";
-import Component from "./Component.js";
-import Input from "./Input.js";
-import Label from "./Label.js";
-import MainComponent from "./MainComponent.js";
-import SimpleDataFrame from "./SimpleDataFrame.js";
-import TextField from "./TextField.js";
-import BackGround from "./Background.js";
-import EventHandler from "./EventHandler.js";
-import Form from "./Form.js";
+import Button from "./Button.js"
+import Component from "./Component.js"
+import Input from "./Input.js"
+import Label from "./Label.js"
+import MainComponent from "./MainComponent.js"
+import SimpleDataFrame from "./SimpleDataFrame.js"
+import TextField from "./TextField.js"
+import BackGround from "./Background.js"
+import Button from "./Button.js"
+import EventHandler from "./EventHandler.js"
+import Form from "./Form.js"
 
-const LUI = {
+export default LUI = {
   Component,
   MainComponent,
   Button,
@@ -20,6 +21,4 @@ const LUI = {
   BackGround,
   EventHandler,
   Form,
-};
-
-export default LUI;
+}
