@@ -552,7 +552,7 @@ export default class SimpleDataFrame extends EventHandler {
       console.warn("no column", keyRow_list.length == 0 ? keyRow : valueRow)
       return {}
     }
-    return keyRow_list.toDictionary(valueRow_list)
+    return ArrayHelper.toDictionary(keyRow_list)(valueRow_list)
   }
 
   getName() {

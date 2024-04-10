@@ -54,6 +54,14 @@ const ObjectHelper = {
     }
     return result
   },
+
+  toTupleArray(object){
+    let res = []
+    for(const key in object){
+      res.push([key,object[key]])
+    }
+    return res
+  }
 }
 
 export default ObjectHelper

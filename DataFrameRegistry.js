@@ -6,6 +6,11 @@ let DataFrameRegistry = {
   hasFrame(name) {
     return Object.keys(frames).includes(name)
   },
+  /**
+   *
+   * @param name
+   * @returns {SimpleDataFrame}
+   */
   getDataFrame(name) {
     return this.frames[name]
   },

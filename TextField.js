@@ -5,6 +5,9 @@ export default class TextField extends Component {
   createHTMLElement() {
     this.container = document.createElement("textarea")
   }
+  static events = {
+    textLoad : "textLoad"
+  }
 
   addListeners() {
     super.addListeners()
@@ -23,6 +26,7 @@ export default class TextField extends Component {
   }
   loadText(text) {
     this.container.value = text
+    this.dispatchEvent(TextField.events.textLoad)
   }
   getText() {
     return this.container.value
