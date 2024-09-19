@@ -118,6 +118,22 @@ export class Vector {
   average() {
     return (this.x + this.y) / 2
   }
+
+  /**
+   * rotate clockwise
+   * @param degrees
+   * @returns {Vector}
+   */
+  rotate(degrees){
+    const radians = degrees * (Math.PI/180)
+    const x = Math.cos(radians) * this.x - Math.sin(radians) * this.y
+    const y = Math.sin(radians) * this.x + Math.cos(radians) * this.y
+    return new Vector(x,y)
+  }
+
+  round(prec){
+    return new Vector(+this.x.toFixed(prec),+this.y.toFixed(prec))
+  }
 }
 
 export class Vector4d {

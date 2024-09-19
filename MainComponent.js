@@ -2,6 +2,7 @@ import Component from "./Component.js"
 import HTMLElementHelper from "./Helpers/HTMLElementHelper.js"
 import { Vector } from "./Math.js"
 
+
 export default class MainComponent extends Component {
   constructor(height, width) {
     if (MainComponent.instance) return MainComponent.instance
@@ -13,10 +14,17 @@ export default class MainComponent extends Component {
       this.setHeight(height)
     } else this.setWidth(width)
 
+
     this.setFontSize(0.3).computeSize()
     this.build().resize()
     HTMLElementHelper.setSize(this.container, new Vector())
-    window.addEventListener("resize", (evt) => {
+
+    const Iframe = document.createElement("iframe")
+    Iframe.style.width = "100%"
+    Iframe.style.height = "100%"
+    document.body.appendChild(Iframe)
+    Iframe.addEventListener("resize", (evt) => {
+      console.log("resize")
       const originalOverflow = {
         overflow: this.container.style.overflow,
         overflowX: this.container.style.overflowX,

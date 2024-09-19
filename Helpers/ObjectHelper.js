@@ -2,6 +2,18 @@ const ObjectHelper = {
   get(Object, key, default_value = 0) {
     return Object[key] ?? default_value
   },
+
+  getMultiple(Object,keys,default_value){
+    let res = Object
+    for(const key of keys){
+      res = res[key]
+      if(res == undefined){
+        return default_value
+      }
+    }
+    return res
+  },
+
   /**
    * Will overwrite every property of original object with properties of pulling_from
    * @example {a:2,b:7} + {b:9,c:6} => {a:2,b:9,c:6}
