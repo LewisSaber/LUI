@@ -5,48 +5,47 @@ import { Vector } from "./Math.js"
 
 export default class MainComponent extends Component {
   constructor(height, width) {
-    if (MainComponent.instance) return MainComponent.instance
-    super()
-    MainComponent.instance = this
-    window.MainComponent = this
-    //this.setParentSize()
+    if (MainComponent.instance) return MainComponent.instance;
+    super();
+    MainComponent.instance = this;
+    window.MainComponent = this;
+
+    // Initialize size
     if (height) {
-      this.setHeight(height)
-    } else this.setWidth(width)
+        this.setHeight(height);
+    } else {
+        this.setWidth(width);
+    }
 
+    this.setFontSize(0.3).computeSize();
+    this.build().resize();
+    HTMLElementHelper.setSize(this.container, new Vector());
 
-    this.setFontSize(0.3).computeSize()
-    this.build().resize()
-    HTMLElementHelper.setSize(this.container, new Vector())
+    // Add resize listener for the window
+    window.addEventListener("resize", () => {
+        console.log("Window resized");
+        const originalOverflow = {
+            overflow: this.container.style.overflow,
+            overflowX: this.container.style.overflowX,
+            overflowY: this.container.style.overflowY,
+        };
 
-    const Iframe = document.createElement("iframe")
-    Iframe.style.width = "100%"
-    Iframe.style.height = "100%"
-    document.body.appendChild(Iframe)
-    Iframe.addEventListener("resize", (evt) => {
-      console.log("resize")
-      const originalOverflow = {
-        overflow: this.container.style.overflow,
-        overflowX: this.container.style.overflowX,
-        overflowY: this.container.style.overflowY,
-      }
+        this.container.style.overflow = "hidden";
+        this.container.style.overflowX = "hidden";
+        this.container.style.overflowY = "hidden";
 
-      // Remove the overflow styles
-      this.container.style.overflow = "hidden"
-      this.container.style.overflowX = "hidden"
-      this.container.style.overflowY = "hidden"
+        this.computeSize().resize();
 
-      this.computeSize().resize()
+        this.container.style.overflow = originalOverflow.overflow;
+        this.container.style.overflowX = originalOverflow.overflowX;
+        this.container.style.overflowY = originalOverflow.overflowY;
+    });
 
-      // Reapply the original overflow styles
-      this.container.style.overflow = originalOverflow.overflow
-      this.container.style.overflowX = originalOverflow.overflowX
-      this.container.style.overflowY = originalOverflow.overflowY
-    })
+    // Append the container to the body
+    document.body.appendChild(this.getContainer());
+    this.open();
+}
 
-    document.body.appendChild(this.getContainer())
-    this.open()
-  }
 
   /**
    *

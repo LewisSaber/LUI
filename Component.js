@@ -365,6 +365,7 @@ export default class Component extends EventHandler {
       !component.hasParent() ||
       component.getParent().getId() != this.getId()
     ) {
+     
       component.setParent(this)
     }
     if (!this.isBuilt) {
@@ -391,6 +392,7 @@ export default class Component extends EventHandler {
       this.components[channel] == undefined ||
       Object.keys(this.components[channel]).length == 0
     ) {
+
       shouldOpen = true
       this.components[channel] = {}
     }
@@ -400,7 +402,10 @@ export default class Component extends EventHandler {
     this.componentsOrder.addValue(component)
     this.components[channel][component.getId()] = component
 
-    if (shouldOpen && should_try_open) component.open()
+    if (shouldOpen && should_try_open){
+      component.open()
+    } 
+      
     component.resize()
     this.attachContainer(component.getContainer())
     return this
@@ -467,7 +472,7 @@ export default class Component extends EventHandler {
     if (parent) this.applyParentRelation()
     this.dispatchEvent(Component.events.parentChange, {
       from: oldparent,
-      to: parent,
+      to: parent, 
     })
     return this
   }
@@ -1168,7 +1173,10 @@ export default class Component extends EventHandler {
   handleComponentOpen(component) {
     if (component.getChannel() != "none") {
       if (this.openedComponents[component.getChannel()] != undefined)
-        component.close()
+      {
+        this.openedComponents[component.getChannel()].close()
+      }
+      
       this.openedComponents[component.getChannel()] = component
     }
 
@@ -1206,7 +1214,7 @@ export default class Component extends EventHandler {
     if (sizeOfParent == undefined) {
       sizeOfParent == this.hasParent() ? this.parent.getSize() : new Vector()
     }
-
+    
     let size = this.getSize(sizeOfParent)
     this.applySize(size)
     let position = this.getPosition(sizeOfParent, size)
@@ -1264,7 +1272,8 @@ export default class Component extends EventHandler {
   open(evt = {}) {
     this.isOpen = true
     this.isVisible = true
-    if (this.parent && this.parent.isOpen) {
+    
+    if (this.parent /*&& this.parent.isOpen*/) {
       this.parent.handleComponentOpen(this)
     }
 
@@ -1446,6 +1455,7 @@ export default class Component extends EventHandler {
 
     this.isBuilt = true
     for (let component of this.queue) {
+      
       this.addComponent(
         component.component,
         component.channel,
