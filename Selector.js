@@ -1,29 +1,30 @@
 import Component from "./Component.js"
 import ObjectHelper from "./Helpers/ObjectHelper.js"
+import Input from "./Input.js";
 
-export default class Selector extends Component {
+export default class Selector extends Input {
   constructor() {
     super()
-    this.options = []
+    this.selectorOptions = []
   }
 
   static copyConfig = ObjectHelper.merge(Component.copyConfig, {
     includeProperties: {
-      options: true,
+      selectorOptions: true,
     },
   })
 
   addOption(option) {
     for (let i = 0; ; i++) {
-      if (this.options[i] == undefined) {
-        this.options[i] = option
+      if (this.selectorOptions[i] == undefined) {
+        this.selectorOptions[i] = option
         break
       }
     }
     if (this.isBuilt) this.addOptionToContainer(option)
     return this
   }
-  createContainer() {
+  createHTMLElement() {
     this.container = document.createElement("select")
     this.container.style.pointerEvents = "all"
     this.container.style.position = "absolute"
@@ -35,32 +36,27 @@ export default class Selector extends Component {
     this.container.appendChild(optionContainer)
     return this
   }
-  refrestOptions() {
+  refreshOptions() {
     this.container.innerText = ""
-    for (let option of this.options) {
+    for (let option of this.selectorOptions) {
       if (option != undefined) {
         this.addOptionToContainer(option)
       }
     }
   }
   removeOptionByValue(value) {
-    for (let i = 0; i < this.options.length; i++) {
-      if (this.options[i] != undefined && this.options[i].value == value) {
-        delete this.options[i]
+    for (let i = 0; i < this.selectorOptions.length; i++) {
+      if (this.selectorOptions[i] != undefined && this.selectorOptions[i].value == value) {
+        delete this.selectorOptions[i]
         this.refrestOptions()
         break
       }
     }
   }
-  resize() {
-    let pixelSize = this.getPixelSize()
-    this.container.style.fontSize = pixelSize.x * this.size.y
-    this.container.setSize(this.size.multiply(pixelSize))
-    this.container.setPosition(this.position.multiply(pixelSize))
-  }
+
   build() {
     super.build()
-    this.refrestOptions()
+    this.refreshOptions()
     this.isBuilt = true
     return this
   }
