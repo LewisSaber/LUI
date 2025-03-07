@@ -8,8 +8,20 @@ export default class Button extends Component {
   }
 
   setText(text, fontSize, color = "black", x, y) {
+    if(!this.isBuilt){
+      this.addEventListener(
+        Component.events.build,
+        (_, target) => {
+          target.setText(text, fontSize, color,x,y)
+        },
+        undefined,
+        { once: true }
+      )
+      return this
+    }
+    
     if (!this.textLabel) {
-      this.textLabel = new Label().setSizeEqualToParent()
+      this.textLabel = new Label().setCenterAligment(false,true)
       this.textLabel.options.informational.is_button_text_label = true
       this.textLabel.addEventListener(Component.events.build, (_, target) => {
         target.getContainer().style.pointerEvents = "none"
@@ -21,6 +33,8 @@ export default class Button extends Component {
     this.textLabel.setText(text).setColor(color)
 
     if (fontSize) this.textLabel.setFontSize(fontSize)
+      console.log({fontsize:this.getFontSize()})
+      this.textLabel.setSize(-1,fontSize || this.getFontSize())
     if (x || y) this.textLabel.setPosition(x, y)
 
     return this
@@ -51,6 +65,10 @@ export default class Button extends Component {
 
   createHTMLElement() {
     this.container = document.createElement("button")
+  }
+
+  onclick(func,options){
+    return this.addEventListener(Button.events.mousedown,func,{},options)
   }
 
   /**

@@ -131,6 +131,29 @@ export default class Form extends Component {
       else if (empty_missing) this.inputs[key].setValue("")
     }
   }
+  submit(url) {
+    const data = this.getData();
+    if (!data) {
+      console.error("Form submission failed. Required fields are missing.");
+      return {
+        then: (callback) => callback(false),
+        catch: (callback) => callback("Form validation failed"),
+      };
+    }
+
+    return fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    }).then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    });
+  }
 
   removeComponent(component, triggerRefloat) {
     this.removeInput(component)
